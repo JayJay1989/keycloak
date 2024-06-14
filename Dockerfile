@@ -1,7 +1,7 @@
 
 ARG DIST=amazonlinux
 
-FROM amazoncorretto:17 AS base
+FROM amazoncorretto:21 AS base
 
 ARG KEYCLOAK_VERSION 999.0.0-SNAPSHOT
 ARG KEYCLOAK_DIST=https://github.com/keycloak/keycloak/releases/download/$KEYCLOAK_VERSION/keycloak-$KEYCLOAK_VERSION.tar.gz
@@ -19,7 +19,7 @@ RUN set -eux; \
     mkdir -p /opt/keycloak/data ; \
     chmod -R g+rwX /opt/keycloak
 
-FROM amazoncorretto:17 AS dist-amazonlinux
+FROM amazoncorretto:21 AS dist-amazonlinux
 
 # Install curl. May be useful in heatlcheck
 RUN set -eux; \
@@ -28,7 +28,7 @@ RUN set -eux; \
     rm -rf /var/cache/yum
 
 
-FROM amazoncorretto:17-alpine AS  dist-alpine
+FROM amazoncorretto:21-alpine AS  dist-alpine
 
 # Install bash for kc.sh script and curl. Curl may be useful in heatlcheck
 RUN set -eux ; \
