@@ -1,8 +1,7 @@
 name: Docker Build Images
 
-concurrency:
-    group: build-docker-${{ github.ref }}
-    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+run-name: Build Keycloak v${{ inputs.version }} ${{ inputs.triggered_by && format('({0})', inputs.triggered_by) || '' }}
+
 on:
     workflow_dispatch:
         inputs:
@@ -10,6 +9,15 @@ on:
                 description: 'Keycloak version'
                 required: true
                 type: string
+            triggered_by:
+                description: 'Trigger source (e.g., VersionPulse)'
+                required: false
+                type: string
+
+concurrency:
+    group: build-docker-${{ github.ref }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
     build-and-push:
         runs-on: ubuntu-latest
