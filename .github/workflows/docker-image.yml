@@ -14,7 +14,7 @@ on:
                 required: false
                 type: string
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/keycloak
+  IMAGE_NAME: ghcr.io/${{ toLower(github.repository_owner) }}/keycloak
 
 concurrency:
     group: build-docker-${{ github.ref }}
