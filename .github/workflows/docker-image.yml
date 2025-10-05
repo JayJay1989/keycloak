@@ -13,9 +13,6 @@ on:
                 description: 'Trigger source (e.g., VersionPulse)'
                 required: false
                 type: string
-env:
-  IMAGE_NAME: ghcr.io/${{ toLower(github.repository_owner) }}/keycloak
-
 concurrency:
     group: build-docker-${{ github.ref }}
     cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -36,44 +33,48 @@ jobs:
               with: 
                 version: v0.9.1
 
-            -   name: Log in to GHCR
-                uses: docker/login-action@v3
-                with:
-                    registry: ghcr.io
-                    username: ${{ github.actor }}
-                    password: ${{ secrets.GITHUB_TOKEN }}
+            - name: Log in to GHCR
+              uses: docker/login-action@v3
+              with:
+                registry: ghcr.io
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
 
-            -   name: Docker metadata
-                id: keycloak
-                uses: docker/metadata-action@v4
-                with:
-                    images: ${{ env.IMAGE_NAME }}
-                    tags: |
-                        type=raw,value=${{ inputs.version }}
-                        type=raw,value=latest
-                    labels: |
-                        org.opencontainers.image.description=Open Source Identity and Access Management
-                        org.opencontainers.image.title=Keycloak
-                        org.opencontainers.image.version=${{ inputs.version }}
+            - name: lowercase github.repository
+              run: |
+                echo "IMAGE_NAME=${GITHUB_REPOSITORY@L}" >> ${GITHUB_ENV}
+                
+            - name: Docker metadata
+              id: keycloak
+              uses: docker/metadata-action@v4
+              with:
+                images: ${{ env.IMAGE_NAME }}
+                tags: |
+                   type=raw,value=${{ inputs.version }}
+                   type=raw,value=latest
+                labels: |
+                    org.opencontainers.image.description=Open Source Identity and Access Management
+                    org.opencontainers.image.title=Keycloak
+                    org.opencontainers.image.version=${{ inputs.version }}
+                    
+            - name: Print build options (dry run)
+              env:
+                VERSION: "${{ inputs.version }}"
+                TAG: "${{ env.IMAGE_NAME }}:${{ inputs.version }}"
+              run: |
+                cat "${{ steps.keycloak.outputs.bake-file }}"
+                docker buildx bake  -f docker-bake.hcl -f "${{ steps.keycloak.outputs.bake-file }}" --print
 
-            -   name: Print build options (dry run)
-                env:
-                    VERSION: "${{ inputs.version }}"
-                    TAG: "${{ env.IMAGE_NAME }}:${{ inputs.version }}"
-                run: |
-                    cat "${{ steps.keycloak.outputs.bake-file }}"
-                    docker buildx bake  -f docker-bake.hcl -f "${{ steps.keycloak.outputs.bake-file }}" --print
-
-            -   name: Build & Push (multi-arch)
-                uses: docker/bake-action@v2
-                env:
-                    VERSION: "${{ inputs.version }}"
-                    TAG: "${{ env.IMAGE_NAME }}:${{ inputs.version }}"
-                with:
-                    files: |
-                        ./docker-bake.hcl
-                        ${{ steps.keycloak.outputs.bake-file }}
-                    push: true
+            - name: Build & Push (multi-arch)
+              uses: docker/bake-action@v2
+              env:
+                VERSION: "${{ inputs.version }}"
+                TAG: "${{ env.IMAGE_NAME }}:${{ inputs.version }}"
+              with:
+                files: |
+                    ./docker-bake.hcl
+                    ${{ steps.keycloak.outputs.bake-file }}
+                push: true
 
             - name: Show published tags
               run: |
