@@ -1,4 +1,3 @@
-
 ARG DIST=amazonlinux
 
 FROM amazoncorretto:21 AS base
@@ -23,7 +22,7 @@ FROM amazoncorretto:21 AS dist-amazonlinux
 
 # Install curl. May be useful in heatlcheck
 RUN set -eux; \
-    yum  -y install curl ; \
+    yum -y install curl --allowerasing ; \
     yum clean all ; \
     rm -rf /var/cache/yum
 
